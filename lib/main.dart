@@ -11,7 +11,13 @@ import 'notificaciones.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Notificaciones.inicializar();
+  try {
+    await Notificaciones.inicializar();
+  } catch (error) {
+    // Si el teléfono no permite notificaciones, la app debe abrir de todas formas.
+    debugPrint('No se pudieron iniciar las notificaciones: $error');
+    Notificaciones.habilitadas = false;
+  }
   runApp(const MisPendientesApp());
 }
 
