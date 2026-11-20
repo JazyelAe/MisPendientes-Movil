@@ -1,0 +1,45 @@
+# Instala el APK del Release en un emulador Android 14 y toma capturas reales con adb (scripts/capturas.sh).
+name: Capturas en emulador
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Etiqueta del Release a probar"
+        default: "v1.0.0"
+
+jobs:
+  capturas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar el APK publicado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "${{ inputs.version }}" -p "*.apk" -O MisPendientes.apk
+
+      - name: Habilitar KVM (aceleración del emulador)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulador Pixel 6 · Android 14 en español
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: bash scripts/capturas.sh MisPendientes.apk
+
+      - name: Guardar capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas
+          path: capturas/

@@ -1,0 +1,82 @@
+# Pruebas + demo web en GitHub Pages en cada push; APK de Android en un Release al crear una etiqueta v*.
+name: Flutter
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Análisis estático
+        run: flutter analyze
+      - name: Pruebas de widgets (flutter test)
+        run: flutter test
+
+  web:
+    needs: probar
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicar.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+      - name: Compilar demo web
+        run: flutter build web --release --base-href /MisPendientes-Movil/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: publicar
+        uses: actions/deploy-pages@v4
+
+  apk:
+    needs: probar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+      - name: Compilar APK
+        run: |
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk "MisPendientes-${GITHUB_REF_NAME}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MisPendientes-apk
+          path: MisPendientes-*.apk
+      - name: Crear Release con el APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "MisPendientes-${GITHUB_REF_NAME}.apk" \
+            --title "Mis Pendientes $GITHUB_REF_NAME" \
+            --notes "APK de Mis Pendientes (Flutter, Android 7.0 o superior). Descarga el archivo .apk en tu teléfono, ábrelo y permite instalar apps de origen desconocido. Demo web: https://jazyelae.github.io/MisPendientes-Movil/"
