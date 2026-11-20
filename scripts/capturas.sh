@@ -72,7 +72,11 @@ anota "== Dispositivo: $(adb shell getprop ro.product.model) · Android $(adb sh
 
 adb install -r "$APK" && anota "CA-2 instalación del APK: OK"
 abrir() { for i in 1 2 3 4 5; do adb shell am start -W -n "$PKG/.MainActivity" >/dev/null; sleep 5; existe "Nueva tarea" && return 0; sleep 5; done; return 1; }
-abrir && anota "CA-2 la app abre: OK"
+if abrir; then anota "CA-2 la app abre: OK"; else
+  anota "ERROR: la app no abrió. Registro del sistema (logcat):"
+  adb logcat -d -t 400 | grep -iE "flutter|mispendientes|AndroidRuntime|FATAL" | tail -60 | tee -a "$LOG"
+  cap 00_error.png; exit 1
+fi
 
 # 1. Lista con tareas de ejemplo
 tocar "Agregar tareas de ejemplo"
