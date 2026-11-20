@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.jaziel.mispendientes"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37 // flutter_local_notifications 23 (androidx.core 1.19) exige compilar contra la API 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
