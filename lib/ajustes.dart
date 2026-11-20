@@ -68,7 +68,7 @@ class PantallaAjustes extends StatelessWidget {
           const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.touch_app), title: Text('Mantén presionado'), subtitle: Text('Edita la tarea')),
           const ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.refresh), title: Text('Jala hacia abajo'), subtitle: Text('Actualiza la lista')),
           const Divider(height: 32),
-          const Text('Mis Pendientes v1.0.0 · Jahir Jaziel Serrano Arana · UTP 10° D', textAlign: TextAlign.center),
+          const Text('Mis Pendientes v1.0.1 · Jahir Jaziel Serrano Arana · UTP 10° D', textAlign: TextAlign.center),
         ],
       ),
     );

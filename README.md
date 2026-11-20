@@ -6,7 +6,7 @@ Gestor de tareas **pensado para el teléfono**: se usa con una mano, con **gesto
 > Universidad Tecnológica de Puebla · Jahir Jaziel Serrano Arana · 10° D
 
 ## ⬇️ Descargar y probar
-- **APK para Android 7.0+:** https://github.com/JazyelAe/MisPendientes-Movil/releases/tag/v1.0.0 → descarga `MisPendientes-v1.0.0.apk` en el teléfono, ábrelo y permite instalar apps de origen desconocido.
+- **APK para Android 7.0+:** https://github.com/JazyelAe/MisPendientes-Movil/releases/tag/v1.0.1 → descarga `MisPendientes-v1.0.1.apk` en el teléfono, ábrelo y permite instalar apps de origen desconocido.
 - **Demo web (vista móvil):** https://jazyelae.github.io/MisPendientes-Movil/ — sin notificaciones ni vibración, que son funciones del teléfono.
 
 ## Funciones
