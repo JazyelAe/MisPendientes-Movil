@@ -51,7 +51,13 @@ flutter run -d chrome  # demo web
 ```
 
 ## Capturas
-Se encuentran en [`docs/capturas/`](docs/capturas/).
+Tomadas en un emulador Pixel 6 con Android 14, con gestos reales hechos con adb (workflow *Capturas en emulador*).
+
+| Lista | Deslizar → completar | Deslizar ← borrar | Deshacer |
+|---|---|---|---|
+| ![](docs/capturas/01_lista.png) | ![](docs/capturas/04_deslizar_completar.png) | ![](docs/capturas/05a_deslizar_borrar.png) | ![](docs/capturas/05_borrar_deshacer.png) |
+| **Editar (pulsación larga)** | **Filtro vencidas** | **Notificación** | **Modo oscuro** |
+| ![](docs/capturas/06_editar.png) | ![](docs/capturas/07b_filtro_vencidas.png) | ![](docs/capturas/09_notificacion.png) | ![](docs/capturas/08_modo_oscuro.png) |
 
 ## Documentación
 - Especificación y pruebas: [SPEC.md](SPEC.md)

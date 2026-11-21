@@ -3,7 +3,7 @@
 **Materia:** Aplicaciones Web Progresivas · Unidad I · Actividad Desarrollo
 **Alumno:** Jahir Jaziel Serrano Arana · 10° D
 **Repositorio:** `JazyelAe/MisPendientes-Movil` (nuevo, público)
-**Estado:** borrador para aprobación (Checkpoint A)
+**Estado:** aprobado el 20/11/2026 · implementado · Release v1.0.1 · demo web publicada
 
 ## 1. Objetivo
 Crear una **aplicación móvil** para gestionar tareas personales, pensada desde el inicio para el teléfono:
@@ -99,4 +99,18 @@ Es un **repo nuevo**, así que no hay código previo. Entorno revisado:
 Fuentes técnicas (comprobadas): documentación de Flutter, Material 3, Android Developers (gestos táctiles) y pub.dev (`shared_preferences`, `flutter_local_notifications`, `flutter_launcher_icons`).
 
 ## 10. Pruebas
-_(Se llena después de implementar.)_
+| # | Resultado | Evidencia |
+|---|---|---|
+| CA-1 | ✅ `flutter analyze` sin problemas y `flutter test` 3/3 (orden/filtro, alta + deslizar derecha/izquierda + Deshacer, pulsación larga + persistencia). | Actions |
+| CA-2 | ✅ El APK se instala y abre en el emulador Pixel 6 con Android 14; tras `am force-stop` y volver a abrir, las tareas siguen ahí. | `01_lista.png`, `pruebas_emulador.txt` |
+| CA-3 | ✅ Gestos reales con adb: derecha completa (6→5 pendientes), izquierda borra con SnackBar y **Deshacer** restaura, pulsación larga abre «Editar tarea», jalar muestra «Lista actualizada». | `04`, `05a`, `05`, `06`, `12` |
+| CA-4 | ✅ Orden por prioridad y filtro «Vencidas» (muestra «Pagar el internet» en rojo). | `07_orden_prioridad.png`, `07b_filtro_vencidas.png` |
+| CA-5 | ✅ Permiso de Android 13+ concedido, notificación publicada (`dumpsys notification`), alarma programada para el recordatorio (`ScheduledNotificationReceiver` en `dumpsys alarm`) y 3 vibraciones hápticas registradas (`dumpsys vibrator_manager`). | `09a_permiso.png`, `09_notificacion.png` |
+| CA-6 | ✅ Demo web en Pages, vista 390×844: carga, agrega tareas, persisten al recargar y no hay errores en la consola. | `11_web_movil.png` |
+| CA-7 | ✅ Release **v1.0.1** con `MisPendientes-v1.0.1.apk` (≈ 55 MB). | `13_release.png` |
+| CA-8 | ✅ README con capturas y enlaces. | README.md |
+
+**Incidencias encontradas y corregidas:**
+- El APK no compilaba porque `flutter_local_notifications` 23 exige `compileSdk 37`.
+- **La v1.0.0 se quedaba en la pantalla de arranque:** en modo release, Android eliminó el icono `ic_notificacion`, que solo se nombraba como texto desde Dart. Se agregó `res/raw/keep.xml`, la app ahora arranca aunque fallen las notificaciones, y se publicó la **v1.0.1**. La v1.0.0 sigue publicada, pero **no debe usarse**.
+- En el script de capturas: los deslizamientos cerca del borde activaban el gesto «atrás» de Android, y `uiautomator dump` fallaba durante las animaciones. Ambas cosas se corrigieron.
