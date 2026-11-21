@@ -12,15 +12,17 @@ anota() { echo "$*" | tee -a "$LOG"; }
 
 # Devuelve "x1 y1 x2 y2" del primer elemento cuyo texto o descripción CONTIENE el valor.
 limites() {
-  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
-  adb pull /sdcard/ui.xml ui.xml >/dev/null 2>&1
-  python3 - "$1" <<'PY'
+  # El volcado falla si la pantalla sigue animándose ("could not get idle state"): se reintenta.
+  for intento in 1 2 3 4 5; do
+    rm -f ui.xml
+    adb shell rm -f /sdcard/ui.xml >/dev/null 2>&1
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
+    adb pull /sdcard/ui.xml ui.xml >/dev/null 2>&1
+    if [ -s ui.xml ]; then
+      python3 - "$1" <<'PY'
 import re, sys, xml.etree.ElementTree as ET
 buscado = sys.argv[1]
-try:
-    nodos = list(ET.parse("ui.xml").iter("node"))
-except Exception:
-    nodos = []
+nodos = list(ET.parse("ui.xml").iter("node"))
 # primero coincidencia exacta, después "contiene"
 for exacto in (True, False):
     for n in nodos:
@@ -28,7 +30,13 @@ for exacto in (True, False):
             if (valor == buscado) if exacto else (buscado in valor):
                 print(*re.findall(r"\d+", n.get("bounds")))
                 sys.exit(0)
+sys.exit(1)  # la pantalla se leyó bien, pero el elemento no está
 PY
+      return $?
+    fi
+    sleep 1
+  done
+  return 1
 }
 
 centro() { local b; b=$(limites "$1"); [ -z "$b" ] && return 1; set -- $b; echo "$(( ($1+$3)/2 )) $(( ($2+$4)/2 ))"; }
@@ -97,8 +105,8 @@ existe "Repasar gestos de Flutter" && anota "CA-1 alta de tarea: OK"
 
 # 4. Deslizar a la derecha = completar
 deslizar_con_captura "Comprar despensa" der 04_deslizar_completar.png 85
-adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1
-anota "CA-3 deslizar a la derecha completa → contador: $(adb shell cat /sdcard/u.xml | grep -o '[0-9]* pendiente(s) de [0-9]*' | head -1) (antes 6 de 7)"
+sleep 1
+limites "pendiente(s) de" >/dev/null && anota "CA-3 deslizar a la derecha completa → contador: $(grep -o '[0-9]* pendiente(s) de [0-9]*' ui.xml | head -1) (antes 6 de 7)"
 
 # 5. Deslizar a la izquierda = borrar, con "Deshacer"
 deslizar_con_captura "Llamar al dentista" izq 05a_deslizar_borrar.png 90
