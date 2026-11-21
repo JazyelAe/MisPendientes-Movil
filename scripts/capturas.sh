@@ -59,8 +59,10 @@ cap() { sleep 1; adb exec-out screencap -p > "capturas/$1"; anota "captura: $1";
 deslizar_con_captura() { # texto, dirección (der|izq), archivo, soltar_en(fracción del ancho)
   local b; b=$(limites "$1") || return 1; set -- $b "$2" "$3" "$4"
   local y=$(( ($2+$4)/2 )) x0 xm xf
-  if [ "$5" = der ]; then x0=$(( $1+60 )); xm=$(( $1+($3-$1)*45/100 )); xf=$(( $1+($3-$1)*$7/100 ));
-  else x0=$(( $3-60 )); xm=$(( $3-($3-$1)*45/100 )); xf=$(( $3-($3-$1)*$7/100 )); fi
+  # Se empieza lejos de los bordes: Android usa los bordes de la pantalla para el gesto de "atrás".
+  local ancho=$(( $3-$1 ))
+  if [ "$5" = der ]; then x0=$(( $1+ancho*20/100 )); xm=$(( x0+ancho*35/100 )); xf=$(( x0+ancho*$7/100 ));
+  else x0=$(( $3-ancho*20/100 )); xm=$(( x0-ancho*35/100 )); xf=$(( x0-ancho*$7/100 )); fi
   adb shell input motionevent DOWN $x0 $y; sleep 0.2
   for paso in 1 2 3 4 5; do adb shell input motionevent MOVE $(( x0+(xm-x0)*paso/5 )) $y; sleep 0.05; done
   sleep 0.5; adb exec-out screencap -p > "capturas/$6"; anota "captura: $6"
@@ -104,13 +106,14 @@ tocar "Agregar tarea"
 existe "Repasar gestos de Flutter" && anota "CA-1 alta de tarea: OK"
 
 # 4. Deslizar a la derecha = completar
-deslizar_con_captura "Comprar despensa" der 04_deslizar_completar.png 85
+deslizar_con_captura "Comprar despensa" der 04_deslizar_completar.png 65
 sleep 1
 limites "pendiente(s) de" >/dev/null && anota "CA-3 deslizar a la derecha completa → contador: $(grep -o '[0-9]* pendiente(s) de [0-9]*' ui.xml | head -1) (antes 6 de 7)"
 
 # 5. Deslizar a la izquierda = borrar, con "Deshacer"
-deslizar_con_captura "Llamar al dentista" izq 05a_deslizar_borrar.png 90
-existe "Llamar al dentista" || anota "CA-3 deslizar a la izquierda borra: OK"
+if deslizar_con_captura "Llamar al dentista" izq 05a_deslizar_borrar.png 65; then
+  existe "Llamar al dentista" || anota "CA-3 deslizar a la izquierda borra: OK"
+else anota "  ERROR: no se encontró la tarea a borrar"; fi
 cap 05_borrar_deshacer.png
 tocar "Deshacer"
 existe "Llamar al dentista" && anota "CA-3 Deshacer restaura la tarea: OK"
@@ -153,7 +156,7 @@ adb shell cmd statusbar expand-notifications; sleep 2
 cap 09_notificacion.png
 adb shell cmd statusbar collapse; sleep 1
 anota "-- Recordatorios programados (AlarmManager):"
-adb shell dumpsys alarm 2>/dev/null | grep -c "$PKG" | xargs -I{} echo "   alarmas de $PKG: {}" | tee -a "$LOG"
+adb shell dumpsys alarm 2>/dev/null | grep -iE "mispendientes|ScheduledNotification" | head -8 | cut -c1-200 | tee -a "$LOG"
 anota "-- Vibraciones registradas por el sistema (respuesta háptica):"
 adb shell dumpsys vibrator_manager 2>/dev/null | grep -i "$PKG" | head -3 | cut -c1-220 | tee -a "$LOG"
 
@@ -166,4 +169,6 @@ cap 08_modo_oscuro.png
 adb shell input keyevent KEYCODE_HOME; sleep 2
 adb shell input swipe $((W/2)) $((H*85/100)) $((W/2)) $((H*20/100)) 300; sleep 3
 cap 10_icono.png
+anota "-- Mensajes de la app en logcat (errores):"
+adb logcat -d 2>/dev/null | grep -iE "flutter.*(error|exception)|E/flutter" | tail -15 | cut -c1-220 | tee -a "$LOG"
 anota "== Fin"
